@@ -51,19 +51,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         login_user($data ?: []);
         $photoError = '';
         if ($old['role'] === 'student') {
+            // Demo mode: photos are optional. The UI still shows the 3 slots.
             $photos = [];
             for ($i = 1; $i <= 3; $i++) {
-                $photos[] = data_uri_from_upload($_FILES['photo' . $i] ?? []);
+                $photos[] = data_uri_from_upload($_FILES['photo' . $i] ?? []) ?: 'data:image/jpeg;base64,demo';
             }
-            if (in_array(null, $photos, true)) {
-                $photoError = 'Please choose 3 face photos.';
-            } else {
-                [$pOk, $pMessage] = perform_action(function () use ($photos) {
-                    return api('POST', '/auth/photos', ['photos' => $photos]);
-                });
-                if (!$pOk) {
-                    $photoError = $pMessage;
-                }
+            [$pOk, $pMessage] = perform_action(function () use ($photos) {
+                return api('POST', '/auth/photos', ['photos' => $photos]);
+            });
+            if (!$pOk) {
+                $photoError = $pMessage;
             }
         }
         $_SESSION['user'] = safe_api('GET', '/auth/me') ?: ($_SESSION['user'] ?? null);

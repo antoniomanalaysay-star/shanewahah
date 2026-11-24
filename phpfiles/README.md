@@ -1,44 +1,48 @@
-# AtClam PHP UI
+# AtClam PHP UI — Demo mode
 
 This folder is a browser (PHP) replacement for the Flutter UI in `../classroom-attendance`.
-The visuals, labels, colors, tabs, cards and dialogs mirror the original app. Behavior is
-wired to the **existing FastAPI backend**, so face detection, blink liveness, PDF class
-lists and PostgreSQL storage remain exactly the same as in the Flutter app.
+
+It now runs **completely standalone**: no FastAPI server, no PostgreSQL, no camera model,
+no external data. Every API call is answered locally from a small demo state kept only in
+the PHP session. Close the browser session and everything returns to the seeded demo.
 
 ## Run it
 
-1. Start the backend from the original project:
+```bash
+cd ~/Downloads/phpfiles
+php -S localhost:8080
+```
 
-   ```bash
-   cd ../classroom-attendance/backend
-   pip install -r requirements.txt
-   uvicorn main:app --host 0.0.0.0 --port 8000
-   ```
+Open `http://localhost:8080/login.php`.
 
-2. Serve this folder with any PHP 8.1+ server, for example:
+## Demo login
 
-   ```bash
-   cd ~/Downloads/phpfiles
-   php -S localhost:8080
-   ```
+- Type any username/email and any password.
+- Names containing `admin` open the admin dashboard.
+- Names containing `instructor`, `teacher` or `prof` open the instructor dashboard.
+- Anything else opens the student dashboard.
 
-3. Open `http://localhost:8080/login.php`.
+Built-in examples: `ThirdyAdmin`, `instructor`, `student`, `jane`, `alex`.
 
-If the backend is on another machine, open the account menu → **Server address** and enter
-its LAN address, e.g. `http://192.168.1.10:8000`. The choice is saved in a cookie and used
-by both PHP and the browser camera scanner.
+Registration also works without uploading photos — the three photo slots are still shown.
+
+## What works
+
+- All dashboards, tabs, class pages, dialogs, forms, notifications and calendars.
+- Create/edit/delete demo classes and accounts during the session.
+- Create classes, join with a seeded code (`A1B2C3` or `B2C3D4`), post announcements,
+  add excuse notes, start/end a demo class session, and scan with the browser camera.
+- Face recognition is simulated: the scanner shows sample face boxes and marks attendance.
 
 ## Files
 
-- `core.php` – sessions, backend calls, auth helpers, shared validation
+- `core.php` – sessions, helpers and the complete local demo API (no cURL)
 - `ui.php` – UI components (logo, fields, shell, cards, dialogs, calendar)
-- `styles.php` / `scripts.php` – the CSS/JS assets served through PHP
-- `api.php` – same-origin JSON proxy that safely attaches the session token
-- page files – one PHP page per Flutter screen (including `splash.php` for the brief startup gate)
+- `styles.php` / `scripts.php` – CSS/JS assets served through PHP
+- `api.php` – same-origin JSON proxy for the browser JavaScript (also demo-only)
+- page files – one PHP page per Flutter screen
 
-## Notes
+## Note
 
-- Login accepts the same email/username + password as the Flutter app.
-- Camera pages require `getUserMedia`, which works on `localhost` or HTTPS.
-- `admin.php`, `instructor.php` and `student.php` are the role dashboards reached from the
-  root `index.php`.
+The camera preview needs `localhost` or HTTPS permission, but no face model or backend
+is contacted. Real recognition would require the original FastAPI backend.

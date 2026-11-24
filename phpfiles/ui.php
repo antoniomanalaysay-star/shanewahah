@@ -81,8 +81,15 @@ function clam_logo(int $size = 100): string
 
 function avatar_url(array $user): string
 {
-    $id = $user['id'] ?? '';
-    return $id !== '' ? backend_url() . '/avatars/' . rawurlencode((string)$id) . '.jpg' : '';
+    $initial = function_exists('mb_substr')
+        ? mb_substr((string)($user['name'] ?? ''), 0, 1)
+        : substr((string)($user['name'] ?? ''), 0, 1);
+    $initial = function_exists('mb_strtoupper') ? mb_strtoupper($initial) : strtoupper($initial);
+    $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' .
+        '<rect width="100" height="100" rx="50" fill="#1F7A43"/>' .
+        '<text x="50" y="66" font-family="Arial,sans-serif" font-size="44" font-weight="700" fill="#E7F3E9" text-anchor="middle">' .
+        htmlspecialchars($initial !== '' ? $initial : '?', ENT_XML1 | ENT_QUOTES, 'UTF-8') . '</text></svg>';
+    return 'data:image/svg+xml;charset=utf-8,' . rawurlencode($svg);
 }
 
 function field(string $name, string $label, array $opts = []): string
@@ -275,7 +282,7 @@ function legacy_shell(array $user, array $nav, string $activeTitle, string $cont
         '<button type="button" data-menu="logout">Log out</button>';
 
     $serverDialog = dialog('serverDialog', 'Server address',
-        '<p class="muted">For a phone, use your computer’s LAN address, e.g. http://192.168.1.10:8000</p>' .
+        '<p class="muted">Demo mode: no server is needed. This address is kept for reference only.</p>' .
         field('backend_url', 'Backend URL', ['icon' => 'dns', 'value' => backend_url()]),
         dialog_button('Cancel', 'text', 'closeDialog(\'serverDialog\')') .
         dialog_button('Save', 'primary', 'saveBackendUrl()'));

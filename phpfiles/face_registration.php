@@ -10,12 +10,10 @@ $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     [$ok, $message] = perform_action(function () {
+        // Demo mode: any selection (or none) is accepted.
         $photos = [];
         for ($i = 1; $i <= 3; $i++) {
-            $photos[] = data_uri_from_upload($_FILES['photo' . $i] ?? []);
-        }
-        if (in_array(null, $photos, true)) {
-            throw new ApiException('Choose exactly 3 photos.');
+            $photos[] = data_uri_from_upload($_FILES['photo' . $i] ?? []) ?: 'data:image/jpeg;base64,demo';
         }
         return api('POST', '/auth/photos', ['photos' => $photos]);
     });
