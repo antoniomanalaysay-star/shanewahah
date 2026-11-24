@@ -31,8 +31,11 @@ Copy `.env.example` to `.env` to override:
 | `DB_HOST`, `DB_PORT` | PostgreSQL host/port (default `localhost:5432`) |
 | `DB_NAME` | Database name (default `AtClam`) |
 | `DB_USER`, `DB_PASSWORD` | PostgreSQL credentials |
+| `DEMO_MODE` | Set to `0` to disable the no-login `X-Demo-User-Id` header (default `1` in this copy) |
 
 Recognition, voting and liveness thresholds are in `config.py`.
+
+This copy of the backend runs in no-login demo mode for the dashboard-only Flutter app: `GET /demo/users` lists the three demo identities and every protected route also accepts `X-Demo-User-Id` instead of a bearer token. See `../NO_LOGIN_DEMO.md` for details.
 
 ## Authentication
 

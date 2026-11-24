@@ -6,7 +6,6 @@ import '../../services/session.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/app_widgets.dart';
 import '../../widgets/clam_logo.dart';
-import 'change_password_screen.dart';
 import 'face_registration_screen.dart';
 import 'notifications_sheet.dart';
 
@@ -128,8 +127,8 @@ class _LegacyShellState extends State<LegacyShell> {
             const NotificationBell(),
             _accountMenu(),
             TextButton(
-              onPressed: Session.instance.logout,
-              child: const Text('Log out',
+              onPressed: Session.instance.switchRole,
+              child: const Text('Switch role',
                   style: TextStyle(color: AppColors.muted, fontSize: 12)),
             ),
           ],
@@ -303,24 +302,20 @@ class _LegacyShellState extends State<LegacyShell> {
         icon: const Icon(Icons.account_circle_outlined,
             color: AppColors.muted, size: 22),
         onSelected: (value) {
-          if (value == 'password') {
-            Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => const ChangePasswordScreen()));
-          } else if (value == 'photos') {
+          if (value == 'photos') {
             Navigator.of(context).push(MaterialPageRoute(
                 builder: (_) => const FaceRegistrationScreen()));
           } else if (value == 'server') {
             _showServerDialog(context);
-          } else if (value == 'logout') {
-            Session.instance.logout();
+          } else if (value == 'role') {
+            Session.instance.switchRole();
           }
         },
         itemBuilder: (_) => [
-          const PopupMenuItem(value: 'password', child: Text('Change password')),
           if (widget.user.isStudent)
             const PopupMenuItem(value: 'photos', child: Text('My face photos')),
           const PopupMenuItem(value: 'server', child: Text('Server address')),
-          const PopupMenuItem(value: 'logout', child: Text('Log out')),
+          const PopupMenuItem(value: 'role', child: Text('Switch role')),
         ],
       );
 }

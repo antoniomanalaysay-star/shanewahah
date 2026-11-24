@@ -28,6 +28,9 @@ class ApiClient {
   String? token;
   void Function()? onUnauthorized;
 
+  /// Set by the no-login role picker. Sent instead of a JWT by this build.
+  String? demoUserId;
+
   Uri _uri(String path, [Map<String, String>? query]) {
     return Uri.parse('${AppConfig.apiBaseUrl}$path')
         .replace(queryParameters: query?.isEmpty == true ? null : query);
@@ -36,6 +39,7 @@ class ApiClient {
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
         if (token != null) 'Authorization': 'Bearer $token',
+        if (demoUserId != null) 'X-Demo-User-Id': demoUserId!,
       };
 
   Future<dynamic> get(String path, {Map<String, String>? query}) =>

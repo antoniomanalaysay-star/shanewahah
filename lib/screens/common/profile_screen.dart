@@ -6,7 +6,6 @@ import '../../services/api_client.dart';
 import '../../services/session.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/app_widgets.dart';
-import 'change_password_screen.dart';
 import 'face_registration_screen.dart';
 
 /// The original "My profile" page: identity, picture, details and password.
@@ -92,7 +91,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       padding: const EdgeInsets.all(24),
       children: [
         const _PageTitle('My profile',
-            subtitle: 'Manage your account details, picture and password.'),
+            subtitle: 'Manage your account details and picture.'),
         const SizedBox(height: 20),
         LayoutBuilder(
           builder: (context, constraints) {
@@ -133,24 +132,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     FilledButton(
                       onPressed: _busy ? null : _saveName,
                       child: const Text('Save name'),
-                    ),
-                  ],
-                ),
-              ),
-              _card(
-                title: 'Password',
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Change your password regularly.',
-                        style: TextStyle(color: AppColors.muted)),
-                    const SizedBox(height: 12),
-                    FilledButton.tonalIcon(
-                      onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                              builder: (_) => const ChangePasswordScreen())),
-                      icon: const Icon(Icons.lock_outline),
-                      label: const Text('Change password'),
                     ),
                   ],
                 ),

@@ -13,6 +13,7 @@ from fastapi import Depends, Header, HTTPException
 
 import config as C
 from db import get_connection, user_public
+from demo import demo_user
 
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 TOKEN_HOURS = int(os.getenv("TOKEN_HOURS", "168"))  # 7 days by default
@@ -107,7 +108,20 @@ def _token_user_id(token: str) -> int:
 
 
 # --------------------------------------------------------------- dependencies
-def get_current_user(authorization: Optional[str] = Header(default=None)) -> dict:
+def get_current_user(
+    authorization: Optional[str] = Header(default=None),
+    x_demo_user_id: Optional[str] = Header(default=None, alias="X-Demo-User-Id"),
+) -> dict:
+    # No-login build: the role picker's demo identity replaces the JWT.
+    if x_demo_user_id:
+        try:
+            user = demo_user(int(x_demo_user_id))
+        except (TypeError, ValueError):
+            user = None
+        if user is None:
+            raise HTTPException(status_code=401, detail="Unknown demo account")
+        return user
+
     if not authorization or not authorization.lower().startswith(_bearer_prefix):
         raise HTTPException(status_code=401, detail="Not logged in")
     user_id = _token_user_id(authorization[len(_bearer_prefix):].strip())

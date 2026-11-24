@@ -3,91 +3,71 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/app_user.dart';
 import 'api_client.dart';
-import 'navigation.dart';
 
-/// Who is logged in. Screens listen to this and switch automatically.
+/// The active identity in this no-login build.
+///
+/// There is no token and no login screen: the role picker selects one of the
+/// demo accounts and the backend identifies it from ApiClient's demo header.
 class Session extends ChangeNotifier {
   Session._();
 
   static final Session instance = Session._();
 
-  static const String _tokenKey = 'access_token';
+  static const String _lastRoleKey = 'demo_role';
+  static const List<String> _roleOrder = ['student', 'instructor', 'admin'];
 
   final ApiClient _api = ApiClient.instance;
 
   AppUser? user;
   bool ready = false;
+  List<AppUser> demoUsers = [];
 
-  Future<void> restore() async {
-    _api.onUnauthorized = _onTokenRejected;
+  /// Load the three demo roles and reopen the last one used, if any.
+  Future<void> loadDemoUsers() async {
+    final data = await _api.get('/demo/users') as Map<String, dynamic>;
+    demoUsers = data.values
+        .map((e) => AppUser.fromJson(e as Map<String, dynamic>))
+        .toList();
+    demoUsers.sort((a, b) =>
+        _roleOrder.indexOf(a.role).compareTo(_roleOrder.indexOf(b.role)));
+    ready = true;
+
     final prefs = await SharedPreferences.getInstance();
-    final saved = prefs.getString(_tokenKey);
-
-    if (saved != null) {
-      _api.token = saved;
-      try {
-        final data = await _api.get('/auth/me');
-        user = AppUser.fromJson(data as Map<String, dynamic>);
-      } on ApiException catch (e) {
-        _api.token = null;
-        if (e.statusCode == 401) await prefs.remove(_tokenKey);
+    final lastRole = prefs.getString(_lastRoleKey);
+    if (lastRole != null) {
+      for (final candidate in demoUsers) {
+        if (candidate.role == lastRole) {
+          await _apply(candidate);
+          break;
+        }
       }
     }
-    ready = true;
     notifyListeners();
   }
 
-  Future<void> login(String email, String password) async {
-    final data = await _api.post('/auth/login', body: {
-      'email': email,
-      'password': password,
-    });
-    await _start(data as Map<String, dynamic>);
+  Future<void> enterDemo(AppUser demoUser) async {
+    await _apply(demoUser);
+    notifyListeners();
   }
 
-  Future<void> register({
-    required String name,
-    required String email,
-    required String password,
-    required String role,
-    String? username,
-    String? schoolId,
-  }) async {
-    final data = await _api.post('/auth/register', body: {
-      'name': name,
-      'email': email,
-      'password': password,
-      'role': role,
-      'username': username,
-      'school_id': schoolId,
-    });
-    await _start(data as Map<String, dynamic>);
+  /// "Log out" in this build just returns to the role picker.
+  void switchRole() {
+    _api.demoUserId = null;
+    user = null;
+    notifyListeners();
   }
 
   /// Re-fetch the account after a profile / face-photo change.
   Future<void> refresh() async {
-    final data = await _api.get('/auth/me');
-    user = AppUser.fromJson(data as Map<String, dynamic>);
+    final data = await _api.get('/auth/me') as Map<String, dynamic>;
+    user = AppUser.fromJson(data);
     notifyListeners();
   }
 
-  Future<void> logout() async {
-    rootNavigatorKey.currentState?.popUntil((route) => route.isFirst);
-    _api.token = null;
-    user = null;
+  Future<void> _apply(AppUser demoUser) async {
+    _api.demoUserId = demoUser.id.toString();
+    user = demoUser;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenKey);
-    notifyListeners();
+    await prefs.setString(_lastRoleKey, demoUser.role);
   }
-
-  Future<void> _start(Map<String, dynamic> data) async {
-    final token = data['access_token'] as String;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_tokenKey, token);
-    _api.token = token;
-    user = AppUser.fromJson(data['user'] as Map<String, dynamic>);
-    notifyListeners();
-  }
-
-  void _onTokenRejected() => logout();
 }

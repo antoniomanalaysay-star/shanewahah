@@ -4,12 +4,11 @@ import 'config.dart';
 import 'screens/home_gate.dart';
 import 'theme/app_colors.dart';
 import 'services/navigation.dart';
-import 'services/session.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppConfig.load();
-  Session.instance.restore(); // checks for a saved login in the background
+  // HomeGate loads the demo roles; there is no saved login to restore.
   runApp(const AtClamApp());
 }
 

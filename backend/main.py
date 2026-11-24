@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 import attendance_state as A
 from db import init_db
+from demo import ensure_demo_accounts, router as demo_router
 from scanner import scanner
 from routes import admin as admin_routes
 from routes import attendance as attendance_routes
@@ -18,6 +19,7 @@ from routes.auth import router_files
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    ensure_demo_accounts()
     A.resume()
     try:
         scanner.load()
@@ -43,6 +45,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_routes.router)
+app.include_router(demo_router)
 app.include_router(router_files)
 app.include_router(admin_routes.router)
 app.include_router(class_routes.router)
